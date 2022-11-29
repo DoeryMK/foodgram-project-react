@@ -26,19 +26,23 @@ class User(AbstractUser):
         max_length=150,
         verbose_name='Пароль',
     )
-    is_subscribed = models.BooleanField(
-        db_index=True,
-        default=False,
-        verbose_name='Подписан ли текущий пользователь на этого',
-    )
+    # is_subscribed = models.BooleanField(
+    #     db_index=True,
+    #     default=False,
+    #     verbose_name='Подписан ли текущий пользователь на этого',
+    # )
 
-    REQUIRED_FIELDS = ['email', 'password', ]
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password', ]
 
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
-    @property
-    def is_subscribe(self):
-        return self.is_subscribed
+    def __str__(self):
+        return f'{self.first_name} {self.last_name}'
+
+    # @property
+    # def is_subscribe(self):
+    #     return self.is_subscribed

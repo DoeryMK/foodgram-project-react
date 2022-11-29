@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    #'rest_framework_simplejwt',
+    'rest_framework.authtoken',
+    'djoser',
     #'django_filters',
     'api.apps.ApiConfig',
     'users.apps.UsersConfig',
@@ -158,22 +159,46 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails/')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': [
-#         'rest_framework_simplejwt.authentication.JWTAuthentication',
-#     ],
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PAGINATION_CLASS':
+        'rest_framework.pagination.PageNumberPagination',
+        'PAGE_SIZE': 2,
+
 #     'DEFAULT_FILTER_BACKENDS': [
 #         'django_filters.rest_framework.DjangoFilterBackend',
 #     ],
 #     'DEFAULT_PERMISSION_CLASSES': [
 #         'rest_framework.permissions.IsAuthenticated',
 #     ],
-#     'DEFAULT_PAGINATION_CLASS':
-#         'rest_framework.pagination.LimitOffsetPagination',
-#     'PAGE_SIZE': 5,
-# }
-#
-# SIMPLE_JWT = {
-#     'AUTH_HEADER_TYPES': ('Bearer',),
-#     'ACCESS_TOKEN_LIFETIME': timedelta(days=15),
-# }
+}
+
+DJOSER = {
+    'LOGIN_FIELD': 'email',
+    'HIDE_USERS': True,
+    'SERIALIZERS': {
+        'user_create': 'djoser.serializers.UserCreateSerializer',
+        'user': 'api.serializers.SpecialUserSerializer',
+        'current_user': 'api.serializers.SpecialUserSerializer',
+        'set_password': 'djoser.serializers.SetPasswordSerializer',
+    },
+    'PERMISSIONS': {
+        'user_create': ['rest_framework.permissions.AllowAny'],
+        'set_password': ['djoser.permissions.CurrentUserOrAdmin'],
+        'user': ['djoser.permissions.CurrentUserOrAdmin'],
+
+        'activation': ['rest_framework.permissions.IsAdminUser'],
+        'password_reset': ['rest_framework.permissions.IsAdminUser'],
+        'password_reset_confirm': ['rest_framework.permissions.IsAdminUser'],
+        'username_reset': ['rest_framework.permissions.IsAdminUser'],
+        'username_reset_confirm': ['rest_framework.permissions.IsAdminUser'],
+        'set_username': ['rest_framework.permissions.IsAdminUser'],
+        'user_delete': ['rest_framework.permissions.IsAdminUser'],
+
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'token_create': ['rest_framework.permissions.AllowAny'],
+        'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
+    },
+}
