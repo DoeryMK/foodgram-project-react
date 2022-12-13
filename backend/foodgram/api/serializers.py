@@ -1,84 +1,83 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from djoser.serializers import UserSerializer
+from djoser.serializers import UserSerializer, UserCreateSerializer
+from rest_framework.validators import UniqueTogetherValidator
 
-from users.models import User
+
 
 from .validators import UserDataValidator
+from users.models import Follow, User
+
+
+class SignUpSerializer(UserCreateSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'password')
+        read_only_fields = ('id', )
 
 
 class SpecialUserSerializer(UserSerializer):
-    is_subscribed = serializers.BooleanField(default=False) # Поменять на отношение (поле модели Follow)
+    is_subscribed = serializers.SerializerMethodField()
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name', 'last_name',
                   'is_subscribed')
         read_only_fields = ('email', 'id', 'username', 'first_name', 'last_name')
 
+    def get_is_subscribed(self, obj):
+        return True
+        # user = self.context['request'].user
+        # author = User.objects.get(id=self.context['view'].kwargs.get('id'))
+        # return obj.filter(user=user, author=author).exist()
+
+class RecipesSerializer(serializers.ModelSerializer):
+    pass
+
+class SubscribeSerializer(serializers.ModelSerializer):
+    # authors = SpecialUserSerializer(many=True, read_only=True)
+    # email = serializers.EmailField(read_only=True)
+    recipes = RecipesSerializer(many=True, read_only=True)
+    recipes_count = serializers.SerializerMethodField(default=0)
+    is_subscribed = serializers.SerializerMethodField()
+    # following = serializers.SlugRelatedField(
+    #     queryset=User.objects.all(), slug_field='username')
+    # user = serializers.SlugRelatedField(
+    #     read_only=True, slug_field='username',
+    #     default=serializers.CurrentUserDefault())
+
+    class Meta:
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'is_subscribed', 'recipes', 'recipes_count')
+        # fields = ('following', 'user')
+        model = User
+        read_only_fields = ('email', 'id', 'username', 'first_name', 'last_name')
+
+    # def validate_following(self, value):
+    #     if value == self.context['request'].user:
+    #         raise serializers.ValidationError(
+    #             'Подписка на самого себя запрещена')
+    #     return value
+
+    # def create(self, validated_data):
+    #     return Follow.objects.create(**validated_data)
+
+    def get_is_subscribed(self, obj):
+        return True
+        # user = self.context['request'].user
+        # author = User.objects.get(id=self.context['view'].kwargs.get('id'))
+        # return Follow.objects.filter(user=user, author=author).exist()
+
+    # def get_is_subscribed(self, obj):
+    #     user = self.context['request'].user
+    #     return obj.author__user.exist()
+
+    def get_recipes_count(self):
+        # пересчитывать один раз в момент новой подписки на пользователя?
+        # Но данные тогда могут быть не актуальными
+        pass
 
 
 
-
-
-
-
-
-#
-# class UserSerializer(serializers.ModelSerializer):
-#     """Сериализация данных пользователя."""
-#     username = serializers.CharField(required=True, read_only=True)
-#
-#     class Meta:
-#         model = User
-#         fields = ('email', 'id', 'username', 'first_name',
-#                   'last_name', 'is_subscribed')
-#
-#
-# class UserIdSerializer(UserSerializer):
-#     """Сериализация данных пользователя."""
-#     id = serializers.BooleanField(required=True, )
-#
-# class SignupSerializer(serializers.ModelSerializer, UserDataValidator):
-#     """Сериализация данных пользователя при регистрации."""
-#
-#     class Meta:
-#         model = User
-#         fields = ('id', 'username', 'email', 'first_name',
-#                   'last_name', 'password')
-#         read_only_fields = ('id',)
-#         write_only_fields = ('password', )
-#
-# class PasswordSerializer(serializers.ModelSerializer):
-#     """Сериализация данных пользователя при смене пароля."""
-#     # new_password = serializers.HiddenField(
-#     #     default=serializers.CurrentUserDefault(), source='password')
-#     # current_password = serializers.HiddenField(
-#     #     default=serializers.CurrentUserDefault(), source='password')
-#     new_password = serializers.CharField(write_only=True, required=True,
-#                                          validators=[validate_password])
-#     current_password = serializers.CharField(write_only=True, required=True,
-#                                              source='password')
-#     class Meta:
-#         model = User
-#         fields = ('new_password', 'current_password')
-#
-#     def validator(self, data):
-#         """Проверка корректного ввода данных."""
-#         user = self.context['request'].user
-#         if data['current_password'] != user.password:
-#             raise serializers.ValidationError(
-#                 'Введен некорректный текущий пароль')
-#         if data['new_password'] == data['current_password']:
-#             raise serializers.ValidationError(
-#                 'Пароли совпадают. Придумайте новый пароль')
-#         return data
-#
-#     # def validate_new_password(self, value):
-#     #     try:
-#     #         validate_password(value)
-#     #     except Exception:
-#     #         raise serializers.ValidationError(
-#     #             'Введен некорректный new_password')
-#     #     return value
 
