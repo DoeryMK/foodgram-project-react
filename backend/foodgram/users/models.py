@@ -7,33 +7,28 @@ class User(AbstractUser):
         db_index=True,
         max_length=150,
         unique=True,
-        verbose_name='Логин пользователя',
+        verbose_name='Логин пользователя'
     )
     email = models.EmailField(
         db_index=True,
         unique=True,
-        verbose_name='Почтовый адрес',
+        verbose_name='Почтовый адрес'
     )
     first_name = models.CharField(
         max_length=150,
-        verbose_name='Имя пользователя',
+        verbose_name='Имя пользователя'
     )
     last_name = models.CharField(
         max_length=150,
-        verbose_name='Фамилия пользователя',
+        verbose_name='Фамилия пользователя'
     )
     password = models.CharField(
         max_length=150,
-        verbose_name='Пароль',
+        verbose_name='Пароль'
     )
-    # is_subscribed = models.BooleanField(
-    #     db_index=True,
-    #     default=False,
-    #     verbose_name='Подписан ли текущий пользователь на этого',
-    # )
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password', ]
+    # USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'password', ]
 
 
     class Meta:
@@ -43,6 +38,24 @@ class User(AbstractUser):
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
-    # @property
-    # def is_subscribe(self):
-    #     return self.is_subscribed
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscriber',
+        verbose_name='Подписчик'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='author',
+        verbose_name='Автор'
+    )
+
+    class Meta:
+        unique_together = ("user", "author")
+
+    def __str__(self) -> str:
+        return f'{self.user.username}, {self.author.username}'
+
