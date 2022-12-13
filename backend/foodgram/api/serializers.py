@@ -24,13 +24,9 @@ class SpecialUserSerializer(UserSerializer):
         model = User
         fields = ('email', 'id', 'username', 'first_name', 'last_name',
                   'is_subscribed')
-        read_only_fields = ('email', 'id', 'username', 'first_name', 'last_name')
 
     def get_is_subscribed(self, obj):
         return True
-        # user = self.context['request'].user
-        # author = User.objects.get(id=self.context['view'].kwargs.get('id'))
-        # return obj.filter(user=user, author=author).exist()
 
 class RecipesSerializer(serializers.ModelSerializer):
     pass
@@ -41,39 +37,41 @@ class SubscribeSerializer(serializers.ModelSerializer):
     recipes = RecipesSerializer(many=True, read_only=True)
     recipes_count = serializers.SerializerMethodField(default=0)
     is_subscribed = serializers.SerializerMethodField()
-    # following = serializers.SlugRelatedField(
-    #     queryset=User.objects.all(), slug_field='username')
+    # username = serializers.SlugRelatedField(
+    #     queryset=User.objects.all(), slug_field='username', required=False)
     # user = serializers.SlugRelatedField(
     #     read_only=True, slug_field='username',
     #     default=serializers.CurrentUserDefault())
 
+
     class Meta:
         fields = ('email', 'id', 'username', 'first_name', 'last_name',
                   'is_subscribed', 'recipes', 'recipes_count')
-        # fields = ('following', 'user')
         model = User
-        read_only_fields = ('email', 'id', 'username', 'first_name', 'last_name')
+        read_only_fields = ('email', 'first_name', 'last_name')
 
     # def validate_following(self, value):
-    #     if value == self.context['request'].user:
+    #     if value == self.context.get("request").user:
     #         raise serializers.ValidationError(
     #             'Подписка на самого себя запрещена')
     #     return value
 
-    # def create(self, validated_data):
-    #     return Follow.objects.create(**validated_data)
+    def create(self, validate_data):
+        user = self.context.get("request").user
+        author = User.objects.get(id=self.context['view'].kwargs.get('id'))
+        return Follow.objects.create(user=user, author=author)
 
     def get_is_subscribed(self, obj):
         return True
-        # user = self.context['request'].user
-        # author = User.objects.get(id=self.context['view'].kwargs.get('id'))
-        # return Follow.objects.filter(user=user, author=author).exist()
+    #     request = self.context.get("request")
+    #     if request and hasattr(request, "user"):
+    #         user = request.user
+    #     else:
+    #         return False
+    #     author = User.objects.get(id=self.context['view'].kwargs.get('id'))
+    #     return Follow.objects.filter(user=user, author=author).exists()
 
-    # def get_is_subscribed(self, obj):
-    #     user = self.context['request'].user
-    #     return obj.author__user.exist()
-
-    def get_recipes_count(self):
+    def get_recipes_count(self, obj):
         # пересчитывать один раз в момент новой подписки на пользователя?
         # Но данные тогда могут быть не актуальными
         pass

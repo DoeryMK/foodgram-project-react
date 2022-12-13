@@ -181,7 +181,7 @@ DJOSER = {
     'LOGIN_FIELD': 'email',
     'HIDE_USERS': False,
     'SERIALIZERS': {
-        'user_create': 'djoser.serializers.UserCreateSerializer',
+        'user_create': 'api.serializers.SignUpSerializer',
         'user': 'api.serializers.SpecialUserSerializer',
         'current_user': 'api.serializers.SpecialUserSerializer',
         'set_password': 'djoser.serializers.SetPasswordSerializer',
