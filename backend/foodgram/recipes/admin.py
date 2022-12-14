@@ -15,6 +15,7 @@ class IngredientAdmin(admin.ModelAdmin):
 
 class RecipeIngredientInline(admin.TabularInline):
     model = RecipeIngredient
+    fields = ('ingredient', 'amount')
     autocomplete_fields = ('ingredient',)
     extra = 1
     verbose_name = 'Ингредиент'
