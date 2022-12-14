@@ -1,11 +1,6 @@
-from django.contrib.contenttypes.fields import GenericForeignKey, \
-    GenericRelation
-
 from django.core.validators import MinValueValidator
 from django.db import models
 from colorfield.fields import ColorField
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 
 from users.models import User
 
@@ -13,11 +8,11 @@ from users.models import User
 class Tag(models.Model):
     name = models.CharField(
         max_length=200,
-        verbose_name='Название тега')
+        verbose_name='Название')
     colour = ColorField(
         max_length=7,
         default='#B3FF00',
-        verbose_name='Цвет тега')
+        verbose_name='Цвет')
     slug = models.SlugField(
         max_length=200,
         unique=True,
@@ -36,7 +31,7 @@ class Ingredient(models.Model):
     name = models.CharField(
         max_length=200,
         db_index=True,
-        verbose_name='Название ингридиента')
+        verbose_name='Название')
     measurement_unit = models.CharField(
         max_length=200,
         verbose_name='Единицы измерения')
@@ -59,15 +54,15 @@ class Recipe(models.Model):
     pub_date = models.DateTimeField(
         auto_now_add=True,
         db_index=True,
-        verbose_name='Дата публикации рецепта'
+        verbose_name='Дата публикации'
     )
     name = models.CharField(
         max_length=200,
         unique=True,
         db_index=True,
-        verbose_name='Название рецепта')
+        verbose_name='Название')
     text = models.TextField(
-        verbose_name='Описание рецепта')
+        verbose_name='Описание')
     image = models.BinaryField()
     cooking_time = models.PositiveSmallIntegerField(
         default=1,
@@ -81,7 +76,6 @@ class Recipe(models.Model):
     )
     tags = models.ManyToManyField(
         Tag,
-        through='RecipeTag',
         related_name='recipes',
         verbose_name='Теги'
     )
@@ -97,17 +91,12 @@ class Recipe(models.Model):
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, verbose_name='Ингредиенты')
 
     class Meta:
         verbose_name = 'Ингредиент рецепта'
         verbose_name_plural = 'Ингредиенты рецептов'
 
+    def __str__(self):
+        return self.ingredient.name
 
-class RecipeTag(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name = 'Тег рецепта'
-        verbose_name_plural = 'Теги рецептов'
