@@ -27,9 +27,7 @@ class User(AbstractUser):
         verbose_name='Пароль'
     )
 
-    # USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'password', ]
-
 
     class Meta:
         verbose_name = 'Пользователь'
@@ -43,19 +41,22 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='subscriber',
+        related_name='subscribers',
         verbose_name='Подписчик'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='author',
-        verbose_name='Автор'
+        related_name='authors',
+        verbose_name='Автор рецептов'
     )
 
     class Meta:
-        unique_together = ("user", "author")
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'author'],
+                                    name='unique_authors_in_subscriptions')]
 
     def __str__(self) -> str:
         return f'{self.user.username}, {self.author.username}'
-

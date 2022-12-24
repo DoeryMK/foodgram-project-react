@@ -1,14 +1,14 @@
 from django.contrib import admin
+from django.db.models import Count
 
-
-from .models import Ingredient, Recipe, Tag, RecipeIngredient
+from .models import Ingredient, Recipe, RecipeIngredient, Tag
 
 
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'measurement_unit')
+    list_display = ('id', 'name', 'measurement_unit')
     list_filter = ('name',)
     search_fields = ('name',)
-    ordering = ('name',)
+    ordering = ('id',)
     empty_value_display = '-пусто-'
     list_per_page = 30
 
@@ -22,17 +22,17 @@ class RecipeIngredientInline(admin.TabularInline):
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'colour', 'slug')
-    search_fields = ['name']
+    list_display = ('id', 'name', 'colour', 'slug')
+    search_fields = ('name',)
     ordering = ('name',)
     prepopulated_fields = {"slug": ("name",)}
     empty_value_display = '-пусто-'
     list_per_page = 30
 
 
-# На админ-странице рецепта отображается общее число добавлений этого рецепта в избранное.
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('author', 'name', 'cooking_time', 'pub_date')
+    list_display = ('id', 'author', 'name', 'cooking_time', 'pub_date',
+                    'recipe_likes_counter')
     list_select_related = ('author',)
     list_filter = ('name', 'author', 'tags')
     search_fields = ('name', 'author', 'tags')
@@ -42,8 +42,18 @@ class RecipeAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
     list_per_page = 30
 
+    def recipe_likes_counter(self, obj):
+        return obj.recipe_likes_counter
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.annotate(
+            recipe_likes_counter=Count('favorite_recipes', distinct=True))
+        return queryset
+
+    recipe_likes_counter.short_description = "Число добавлений в избранное"
+
 
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)
-
