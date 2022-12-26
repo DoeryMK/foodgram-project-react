@@ -150,8 +150,8 @@ DJOSER = {
     'HIDE_USERS': False,
     'SERIALIZERS': {
         'user_create': 'api.serializers.SignUpSerializer',
-        'user': 'api.serializers.CustomUserSerializer',
-        'current_user': 'api.serializers.CustomUserSerializer',
+        'user': 'api.serializers.RegisteredUserSerializer',
+        'current_user': 'api.serializers.RegisteredUserSerializer',
         'set_password': 'djoser.serializers.SetPasswordSerializer',
         'token': 'djoser.serializers.TokenSerializer',
         'token_create': 'djoser.serializers.TokenCreateSerializer',
@@ -171,6 +171,6 @@ DJOSER = {
 
         'user_list': ['rest_framework.permissions.AllowAny'],
         'token_create': ['rest_framework.permissions.AllowAny'],
-        'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
+        'token_destroy': ['djoser.permissions.CurrentUserOrAdmin'],
     },
 }
