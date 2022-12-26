@@ -11,6 +11,4 @@ class CustomPagination(PageNumberPagination):
                                      strict=True,
                                      cutoff=self.max_page_size)
             except (KeyError, ValueError):
-                pass
-
-        return self.page_size
+                return self.page_size
