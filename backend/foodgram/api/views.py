@@ -17,39 +17,14 @@ from .custom_render import PlainTextRenderer
 from .paginator import CustomPagination
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (IngredientSerializer, RecipesSerializer,
-                          ShortRecipeSerializer, CustomUserSerializer,
+                          ShortRecipeSerializer, RegisteredUserSerializer,
                           SubscribeSerializer, TagSerializer)
 
 
 class SpecialUserViewSet(UserViewSet):
-    """Обработка эндпоинтов к данным пользователей.
+    """Вьюсет обработки эндпоинтов к данным пользователей."""
 
-    SpecialUserViewSet является наследником класса UserViewSet
-    библиотеки Djoser с дополнительными кастомными эндпоинтами.
-
-    Пользователь должен иметь возможность просматривать данные
-    существующих пользователей по эндпоинту "users/"
-
-    Пользователь должен иметь возможность просматривать данные
-    конкретного пользователя по эндпоинту "users/id/"
-
-    Пользователь должен иметь возможность просматривать данные о себе
-    по эндпоинту "recipes/me/"
-    Пользователь не может изменять свои данные, поэтому выполнено
-    ограничение доступных типов запросов.
-
-    Пользователь должен иметь возможность подписать/отписаться на/от автора
-    по эндпоинту "users/subscribe/id/".
-
-    Пользователь должен иметь возможность получить список своих подписок
-    по эндпоинту "users/subscriptions/".
-
-    Должна быть доступна пагинация, пользователь может ограничить количество
-    выводимых на странице данных параметром "limit".
-    Ограничение реализовано в кастомном пагинаторе CustomUserSerializer"
-    """
-
-    serializer_class = CustomUserSerializer
+    serializer_class = RegisteredUserSerializer
     queryset = User.objects.all()
     http_method_names = ('get', 'post', 'delete')
     pagination_class = CustomPagination
@@ -124,14 +99,7 @@ class SpecialUserViewSet(UserViewSet):
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    """Обработка эндпоинтов к данным тегов.
-
-    Пользователь должен иметь возможность просмотреть список существующих тегов
-    по эндпоинту "tags/".
-
-    Пользователь должен иметь возможность просмотреть данные конкретного тега
-    по эндпоинту "tags/id/".
-    """
+    """Вьюсет обработки эндпоинтов к данным тегов."""
 
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
@@ -139,17 +107,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    """Обработка эндпоинтов к данным ингридиентов.
-
-    Пользователь должен иметь возможность просмотреть
-    список существующих ингредиентов по эндпоинту "ingredients/".
-
-    Пользователь должен иметь возможность просмотреть
-    данные конкретного ингредиента по эндпоинту "ingredients/id/".
-
-    Пользователь можно выполнить поиск по
-    вхождению в начало названия ингредиента.
-    """
+    """Вьюсет обработки эндпоинтов к данным ингридиентов."""
 
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
@@ -159,54 +117,15 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    """Обработка эндпоинтов, связанных с рецептами.
-
-    Пользователь должен иметь возможность регистрировать, просматривать
-    существующие рецепты по эндпоинту "recipes/".
-
-    При просмотре рецептом он может выполнять фильтрацию получаемых данных
-    по следующим параметрам:
-    is_favorited - рецепт добавлен в избранное;
-    is_in_shopping_cart - рецепт добавлен в корзину;
-    author - автор рецептов;
-    tags - теги рецептов.
-
-    Пользователь должен иметь возможность обновлять, удалять
-    собственные рецепты по эндпоинту "recipes/"id/
-    Остальным зарегистрированным пользователям должен быть
-    доступен просмотр рецепта.
-
-    Пользователь может добавить понравившийся рецепт в избранное,
-    либо удалить из него по эндпоинту "recipes/favorite/"
-
-    Пользователь может добавить понравившийся рецепт в корзину,
-    либо удалить из нее по эндпоинту "recipes/shopping_cart/"
-
-    Пользователь может скачать в формате txt общий список ингредиентов
-    для покупок, сгенерированный на основе добавленных в корзину рецептов,
-    по эндпоинту "recipes/download_shopping_cart/"
-
-    Сортировка рецептов всегда должны выполняться по дате убывания.
-
-    Должна быть доступна пагинация, пользователь может ограничить количество
-    выводимых на странице данных параметром "limit".
-    Ограничение реализовано в кастомном пагинаторе CustomUserSerializer"
-    """
+    """Вьюсет обработки эндпоинтов, связанных с рецептами."""
 
     serializer_class = RecipesSerializer
     http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = CustomPagination
     filter_backends = (filters.OrderingFilter,)
     ordering = ('-pub_date',)
+    permission_classes = (IsAuthorOrReadOnly,)
 
-    def get_permissions(self):
-        if self.action in ('destroy', 'partial_update'):
-            permission_classes = (IsAuthorOrReadOnly,)
-        elif self.action == 'list':
-            permission_classes = (AllowAny,)
-        else:
-            permission_classes = (IsAuthenticated,)
-        return [permission() for permission in permission_classes]
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
@@ -257,8 +176,13 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @action(methods=('get',),
             detail=False,
+            permission_classes=(IsAuthenticated,),
             renderer_classes=(PlainTextRenderer,))
     def download_shopping_cart(self, request):
+        if request.user.is_anonymous:
+            return Response(
+                status=status.HTTP_401_UNAUTHORIZED
+            )
         recipes_query = Recipe.objects.filter(
             shoppingcart_recipes__owner=self.request.user
         ).all()

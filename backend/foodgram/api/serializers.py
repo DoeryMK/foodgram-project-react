@@ -10,13 +10,7 @@ from users.models import Follow, User
 
 
 class SignUpSerializer(UserCreateSerializer):
-    """Сериализатор данных регистрируемых пользователей.
-
-    SignUpSerializer является наследником класса UserCreateSerializer
-    библиотеки Djoser с кастомными полями.
-
-    Выполняет сериализацию данных при регистрации пользователей.
-    """
+    """Сериализатор данных регистрируемых пользователей."""
 
     class Meta:
         model = User
@@ -28,11 +22,8 @@ class SignUpSerializer(UserCreateSerializer):
         )
 
 
-class CustomUserSerializer(UserSerializer):
+class RegisteredUserSerializer(UserSerializer):
     """Сериализатор данных зарегистрированных пользователей.
-
-    CustomUserSerializer является наследником класса UserSerializer
-    библиотеки Djoser с кастомными полями.
 
     Метод "get_is_subscribed" добавлен ввиду необходимостью генерировать
     статус: "подписан ли пользователь, инициирующий запрос,
@@ -58,12 +49,7 @@ class CustomUserSerializer(UserSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    """Сериализатор тегов.
-
-    Необходимо выполнять сериализацию добавленных в БД
-    тегов/конкретного тега,
-    отдаваемых/отдаваемого на чтение при get-запросе.
-    """
+    """Сериализатор тегов."""
 
     class Meta:
         model = Tag
@@ -71,11 +57,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор ингредиентов.
-
-    Необходимо выполнять сериализацию добавленных в БД
-    ингредиентов/конкретного ингредиента,
-    отдаваемых/отдаваемого на чтение при get-запросе."""
+    """Сериализатор ингредиентов."""
 
     class Meta:
         model = Ingredient
@@ -123,12 +105,7 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор добавленных в БД рецептов (сокращенный).
-
-    Сериализация данных существующих рецептов
-    для отображения сокращенной информации о рецепте
-    при добавлении в избранное, в корзину, при подписке на автора рецепта.
-    """
+    """Сериализатор добавленных в БД рецептов (сокращенный)."""
 
     class Meta:
         model = Recipe
@@ -140,21 +117,9 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 class RecipesSerializer(serializers.ModelSerializer):
     """Сериализатор рецептов (полный).
 
-    Сериализация данных для создания, обновления и просмотра рецепта
-
     При регистрации нового рецепта необходимо дополнительно сохранить
     информацию для связанных полей по указанному в запросе
     списку id тегов, ингредиентов с уточнением количества.
-
-    Информация об авторе рецепта должна выводиться
-    с указанием всех данных пользователя.
-
-    Метод "get_is_favorited" добавлен ввиду необходимостью генерировать
-    статус: "является ли рецепт в списке избранного у пользователя,
-    инициирующий запрос"
-
-    Метод "get_is_in_shopping_cart" добавлен ввиду необходимостью генерировать
-    статус: "добавлен ли рецепт в корзину пользователя, инициирующего запрос"
     """
 
     tags = serializers.PrimaryKeyRelatedField(
@@ -162,7 +127,7 @@ class RecipesSerializer(serializers.ModelSerializer):
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    author = CustomUserSerializer(
+    author = RegisteredUserSerializer(
         read_only=True
     )
     image = Base64ImageField()
@@ -265,27 +230,7 @@ class RecipesSerializer(serializers.ModelSerializer):
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
-    """Сериализатор подписки.
-
-    Сериализация данных для создания, удаления подписки на автора,
-    просмотра существующих подписок.
-    Отображение связанных полей: данные автора, рецепты автора.
-
-    Информация об авторе рецепта должна выводиться
-    с указанием всех данных пользователя.
-
-    Рецепты автора должны отображаться в сокращенном виде.
-
-    Пользователь может ограничить отображением кол-ва
-    рецептов автора параметром "recipes_limit".
-
-    Метод "get_is_subscribed" добавлен ввиду необходимостью генерировать
-    статус: "подписан ли пользователь, инициирующий запрос,
-    на другого пользователя".
-
-    Метод "get_recipes_count" добавлен ввиду необходимостью выводить
-    общее количество зарегистрированных рецептов автора.
-    """
+    """Сериализатор подписки."""
 
     is_subscribed = serializers.SerializerMethodField()
     email = serializers.ReadOnlyField()
