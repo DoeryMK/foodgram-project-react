@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import User
+from .models import User, Follow
 
 
 class CustomUserAdmin(UserAdmin):
@@ -14,4 +14,10 @@ class CustomUserAdmin(UserAdmin):
     list_per_page = 30
 
 
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('user', 'author')
+    list_filter = ('author',)
+
+
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(Follow, FollowAdmin)

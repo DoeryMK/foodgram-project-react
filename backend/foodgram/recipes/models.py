@@ -145,8 +145,8 @@ class FavoriteBaseModel(models.Model):
                                     name='%(class)s_unique_favorite_recipes')]
 
     def __str__(self):
-        return (f'Рецепт {self.recipe.name} в избранном'
-                f'пользователя {self.owner}')
+        return (f'Рецепт "{self.recipe.name}" понравившийся '
+                f'пользователю {self.owner}')
 
 
 class Favorite(FavoriteBaseModel):

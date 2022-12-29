@@ -7,7 +7,7 @@ from djoser.views import UserViewSet
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
@@ -126,7 +126,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
     ordering = ('-pub_date',)
     permission_classes = (IsAuthorOrReadOnly,)
 
-
     def get_queryset(self):
         queryset = Recipe.objects.all()
 
@@ -157,22 +156,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
             ).all()
 
         return queryset
-
-    def perform_create(self, serializer):
-        serializer.save(
-            author=self.request.user
-        )
-        super().perform_create(
-            serializer
-        )
-
-    def perform_update(self, serializer):
-        serializer.save(
-            author=self.request.user
-        )
-        super().perform_update(
-            serializer
-        )
 
     @action(methods=('get',),
             detail=False,
