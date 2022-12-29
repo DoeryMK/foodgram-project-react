@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.db.models import Count
 
-from .models import Ingredient, Recipe, RecipeIngredient, Tag
+from .models import Ingredient, Recipe, RecipeIngredient, Tag, Favorite, \
+    ShoppingCart
 
 
 class IngredientAdmin(admin.ModelAdmin):
@@ -54,6 +55,20 @@ class RecipeAdmin(admin.ModelAdmin):
     recipe_likes_counter.short_description = "Число добавлений в избранное"
 
 
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('owner', 'recipe')
+    list_filter = ('recipe',)
+    search_fields = ('owner',)
+
+
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ('owner', 'recipe')
+    list_filter = ('recipe',)
+    search_fields = ('owner',)
+
+
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)
+admin.site.register(Favorite, FavoriteAdmin)
+admin.site.register(ShoppingCart, ShoppingCartAdmin)

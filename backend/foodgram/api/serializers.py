@@ -1,5 +1,6 @@
 
 from django.core.validators import MinValueValidator
+from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
@@ -77,9 +78,14 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
     с полным описанием данных выбранного ингредиента,
     поэтому переопределен метод "to_representation".
     """
-
-    id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(), source='ingredient', required=True
+    name = serializers.ReadOnlyField(
+        source='ingredient.name'
+    )
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
+    )
+    id = serializers.ReadOnlyField(
+        source='ingredient.id'
     )
     amount = serializers.IntegerField(
         validators=[MinValueValidator(1)], required=True
@@ -88,20 +94,8 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredient
         fields = (
-            'id', 'amount'
+            'name', 'measurement_unit', 'id', 'amount'
         )
-
-    def to_representation(self, instance):
-        rep = super().to_representation(instance)
-        rep.pop('id')
-        rep.pop('amount')
-        rep['name'] = IngredientSerializer(
-            instance.ingredient).data.get('name')
-        rep['measurement_unit'] = IngredientSerializer(
-            instance.ingredient).data.get('measurement_unit')
-        rep['amount'] = instance.amount
-        rep['id'] = instance.id
-        return rep
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
@@ -122,8 +116,8 @@ class RecipesSerializer(serializers.ModelSerializer):
     списку id тегов, ингредиентов с уточнением количества.
     """
 
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(), many=True
+    tags = TagSerializer(
+        many=True, read_only=True
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -135,7 +129,7 @@ class RecipesSerializer(serializers.ModelSerializer):
         validators=[MinValueValidator(1)]
     )
     ingredients = IngredientAmountSerializer(
-        many=True, source='ingredients_recipes'
+        many=True, read_only=True, source='ingredients_recipes'
     )
 
     class Meta:
@@ -146,7 +140,7 @@ class RecipesSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        tag_data = data['tags']
+        tag_data = self.initial_data.get('tags')
         if not tag_data:
             raise serializers.ValidationError(
                 "Необходимо указать теги"
@@ -155,10 +149,18 @@ class RecipesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Теги не должны повторяться"
             )
+        tags_set = [
+            get_object_or_404(Tag, id=id) for id in tag_data
+        ]
+        data['tags'] = tags_set
 
-        ingredient_data = data['ingredients_recipes']
-        ingredient_list = [item.get('ingredient') for item in
-                           ingredient_data]
+        ingredient_data = self.initial_data['ingredients']
+        ingredient_list = [
+            item.get('id') for item in ingredient_data
+        ]
+        amount_list = [
+            item.get('amount') for item in ingredient_data
+        ]
         if not ingredient_data:
             raise serializers.ValidationError(
                 "Необходимо указать ингредиенты"
@@ -167,6 +169,13 @@ class RecipesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Ингредиенты не должны повторяться"
             )
+        ingredients = [
+            get_object_or_404(
+                Ingredient, id=id
+            ) for id in ingredient_list
+        ]
+        amount_ingredients_set = dict(zip(ingredients, amount_list))
+        data['ingredients'] = amount_ingredients_set
 
         return data
 
@@ -183,24 +192,33 @@ class RecipesSerializer(serializers.ModelSerializer):
         return obj.shoppingcart_recipes.filter(owner=user).exists()
 
     def create(self, validated_data):
+        user = self.context.get('request').user
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredients_recipes')
-        recipe = Recipe.objects.create(**validated_data)
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(
+            author=user,
+            **validated_data
+        )
 
-        Recipe.tags.through.objects.bulk_create(
-            [Recipe.tags.through(tag=tag, recipe=recipe) for tag in tags])
+        recipe.tags.set(tags)
 
-        for ingredient in ingredients:
-            RecipeIngredient.objects.create(
-                ingredient=ingredient.get('ingredient'),
-                recipe=recipe,
-                amount=ingredient.get('amount'))
+        RecipeIngredient.objects.bulk_create(
+            [
+                RecipeIngredient(
+                    ingredient=ingredient,
+                    recipe=recipe,
+                    amount=amount
+                )
+                for ingredient, amount in ingredients.items()
+            ]
+        )
 
+        recipe.save()
         return recipe
 
     def update(self, instance, validated_data):
-        tags_data = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients_recipes')
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
 
         instance.image = validated_data.get('image', instance.image)
         instance.name = validated_data.get('name', instance.name)
@@ -209,24 +227,22 @@ class RecipesSerializer(serializers.ModelSerializer):
             'cooking_time', instance.cooking_time)
 
         instance.tags.clear()
-        Recipe.tags.through.objects.bulk_create(
-            [Recipe.tags.through(tag=tag, recipe=instance)
-                for tag in tags_data])
+        instance.tags.set(tags)
 
         instance.ingredients.clear()
-        for ingredient in ingredients_data:
-            RecipeIngredient.objects.create(
-                ingredient=ingredient.get('ingredient'),
-                recipe=instance,
-                amount=ingredient.get('amount'))
+        RecipeIngredient.objects.bulk_create(
+            [
+                RecipeIngredient(
+                    ingredient=ingredient,
+                    recipe=instance,
+                    amount=amount
+                )
+                for ingredient, amount in ingredients.items()
+            ]
+        )
 
         instance.save()
         return instance
-
-    def to_representation(self, instance):
-        rep = super().to_representation(instance)
-        rep['tags'] = TagSerializer(instance.tags, many=True).data
-        return rep
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
