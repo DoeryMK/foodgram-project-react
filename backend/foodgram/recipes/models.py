@@ -11,7 +11,7 @@ class Tag(models.Model):
     name = models.CharField(
         max_length=200,
         verbose_name='Название')
-    colour = ColorField(
+    color = ColorField(
         max_length=7,
         default='#B3FF00',
         verbose_name='Цвет')

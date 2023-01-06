@@ -1,4 +1,3 @@
-
 from django.core.validators import MinValueValidator
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
@@ -125,6 +124,7 @@ class RecipesSerializer(serializers.ModelSerializer):
         read_only=True
     )
     image = Base64ImageField()
+    text = serializers.CharField(trim_whitespace=False,)
     cooking_time = serializers.IntegerField(
         validators=[MinValueValidator(1)]
     )
