@@ -23,7 +23,7 @@ class RecipeIngredientInline(admin.TabularInline):
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'colour', 'slug')
+    list_display = ('id', 'name', 'color', 'slug')
     search_fields = ('name',)
     ordering = ('name',)
     prepopulated_fields = {"slug": ("name",)}

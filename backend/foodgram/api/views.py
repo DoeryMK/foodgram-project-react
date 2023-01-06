@@ -10,8 +10,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
+from recipes.models import (Favorite, Ingredient, Recipe, ShoppingCart, Tag)
 from users.models import Follow, User
 from .custom_render import PlainTextRenderer
 from .paginator import CustomPagination
@@ -38,18 +37,11 @@ class SpecialUserViewSet(UserViewSet):
             )
         )
         page = self.paginate_queryset(authors_queryset)
-        if page:
-            serializer = SubscribeSerializer(
-                page, many=True, context={'request': request}
-            )
-            return self.get_paginated_response(
-                serializer.data
-            )
         serializer = SubscribeSerializer(
-            authors_queryset, many=True, context={'request': request}
+            page, many=True, context={'request': request}
         )
-        return Response(
-            serializer.data, status=status.HTTP_200_OK
+        return self.get_paginated_response(
+            serializer.data
         )
 
     @action(methods=('post', 'delete'),
@@ -136,6 +128,11 @@ class RecipesViewSet(viewsets.ModelViewSet):
             is_in_shopping_cart = self.request.query_params.get(
                 'is_in_shopping_cart')
 
+        tags = self.request.query_params.getlist('tags')
+        if tags:
+            queryset = queryset.filter(
+                tags__slug__in=tags
+            ).distinct()
         if is_favorited:
             queryset = queryset.filter(
                 favorite_recipes__owner=self.request.user
@@ -148,11 +145,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
         if author:
             queryset = queryset.filter(
                 author__id=author
-            ).all()
-        tags = self.request.query_params.getlist('tags')
-        if tags:
-            queryset = queryset.filter(
-                tags__slug__in=tags
             ).all()
 
         return queryset
