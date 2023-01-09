@@ -5,6 +5,7 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+    # image: doerymi/foodgram_frontend:v0.0
     container_name: frontend-container
     volumes:
       - ../frontend/:/app/result_build/
@@ -28,9 +29,9 @@ services:
 
   backend:
     build:
-      context: ../backend/foodgram/
-      dockerfile: Dockerfile
-    # image: doerymi/foodgram:latest
+       context: ../backend/foodgram/
+       dockerfile: Dockerfile
+    # image: doerymi/foodgram_backend:v0.2
     container_name: backend-container
     restart: always
 
