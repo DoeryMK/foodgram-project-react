@@ -89,5 +89,9 @@ SECRET_KEY = *уникальный секретный ключ Django*
 Операция выполняется с помощью management-команды. 
 Данный загружаются из заранее подготовленных файлов: tags.csv, ingredients.csv, users.csv
 
+### _Admin credentials_ 
+- логин: doery_admin
+- пароль: asdfgH7654321! 
+- почта: doery@yandex.ru 
 
 ## Авторы: [DoeryMK](https://github.com/DoeryMK) 
