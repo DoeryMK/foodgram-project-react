@@ -161,6 +161,7 @@ class RecipesSerializer(serializers.ModelSerializer):
         amount_list = [
             item.get('amount') for item in ingredient_data
         ]
+
         if not ingredient_data:
             raise serializers.ValidationError(
                 "Необходимо указать ингредиенты"
@@ -169,6 +170,7 @@ class RecipesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Ингредиенты не должны повторяться"
             )
+
         ingredients = [
             get_object_or_404(
                 Ingredient, id=id
@@ -220,12 +222,6 @@ class RecipesSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
 
-        instance.image = validated_data.get('image', instance.image)
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time)
-
         instance.tags.clear()
         instance.tags.set(tags)
 
@@ -241,8 +237,7 @@ class RecipesSerializer(serializers.ModelSerializer):
             ]
         )
 
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
