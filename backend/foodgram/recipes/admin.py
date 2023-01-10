@@ -6,40 +6,70 @@ from .models import Ingredient, Recipe, RecipeIngredient, Tag, Favorite, \
 
 
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'measurement_unit')
-    list_filter = ('name',)
-    search_fields = ('name',)
-    ordering = ('id',)
+    list_display = (
+        'id', 'name', 'measurement_unit'
+    )
+    list_filter = (
+        'name',
+    )
+    search_fields = (
+        'name',
+    )
+    ordering = (
+        'id',
+    )
     empty_value_display = '-пусто-'
     list_per_page = 30
 
 
 class RecipeIngredientInline(admin.TabularInline):
     model = RecipeIngredient
-    fields = ('ingredient', 'amount')
-    autocomplete_fields = ('ingredient',)
+    fields = (
+        'ingredient', 'amount'
+    )
+    autocomplete_fields = (
+        'ingredient',
+    )
     extra = 1
     verbose_name = 'Ингредиент'
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'color', 'slug')
-    search_fields = ('name',)
-    ordering = ('name',)
+    list_display = (
+        'id', 'name', 'color', 'slug'
+    )
+    search_fields = (
+        'name',
+    )
+    ordering = (
+        'name',
+    )
     prepopulated_fields = {"slug": ("name",)}
     empty_value_display = '-пусто-'
     list_per_page = 30
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'author', 'name', 'cooking_time', 'pub_date',
-                    'recipe_likes_counter')
-    list_select_related = ('author',)
-    list_filter = ('name', 'author', 'tags')
-    search_fields = ('name', 'author', 'tags')
-    filter_horizontal = ('tags',)
+    list_display = (
+        'id', 'author', 'name', 'cooking_time', 'pub_date',
+        'recipe_likes_counter'
+    )
+    list_select_related = (
+        'author',
+    )
+    list_filter = (
+        'tags',
+    )
+    search_fields = (
+        'name', 'author__first_name', 'author__last_name', 'tags__slug'
+    )
+    filter_horizontal = (
+        'tags',
+    )
     inlines = (RecipeIngredientInline,)
-    autocomplete_fields = ('tags', 'author',)
+    autocomplete_fields = (
+        'tags', 'author',
+    )
     empty_value_display = '-пусто-'
     list_per_page = 30
 
@@ -49,22 +79,37 @@ class RecipeAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         queryset = queryset.annotate(
-            recipe_likes_counter=Count('favorite_recipes', distinct=True))
+            recipe_likes_counter=Count(
+                'favorite_recipes', distinct=True
+            )
+        )
         return queryset
 
     recipe_likes_counter.short_description = "Число добавлений в избранное"
 
 
 class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ('owner', 'recipe')
-    list_filter = ('recipe',)
-    search_fields = ('owner',)
+    list_display = (
+        'owner', 'recipe'
+    )
+    list_filter = (
+        'recipe',
+    )
+    search_fields = (
+        'owner__first_name', 'owner__last_name'
+    )
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ('owner', 'recipe')
-    list_filter = ('recipe',)
-    search_fields = ('owner',)
+    list_display = (
+        'owner', 'recipe'
+    )
+    list_filter = (
+        'recipe',
+    )
+    search_fields = (
+        'owner__first_name', 'owner__last_name'
+    )
 
 
 admin.site.register(Recipe, RecipeAdmin)
