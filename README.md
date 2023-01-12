@@ -23,7 +23,7 @@
 - Docker-compose.yml - инструкции, которые используются для развертывания проекта на боевом сервере в нескольких контейнерах: db, backend, nginx, frontend  
 
 ## **Технологии**
-Django
+Django  
 Django Rest Framework  
 Docker  
 Nginx  
@@ -89,10 +89,5 @@ SECRET_KEY = *уникальный секретный ключ Django*
 ### _Наполнение БД данными_ 
 Операция выполняется с помощью management-команды. 
 Данный загружаются из заранее подготовленных файлов: tags.csv, ingredients.csv, users.csv
-
-### _Admin credentials_ 
-- логин: doery_admin
-- пароль: asdfgH7654321! 
-- почта: doery@yandex.ru 
 
 ## Авторы: [DoeryMK](https://github.com/DoeryMK) 
